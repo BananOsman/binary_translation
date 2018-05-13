@@ -1,0 +1,81 @@
+# Found dynamic strtab: 5 offset 1184 size 234
+# Found strtab: 29 offset 24952 size 2939
+# Found dynamic symtab: 4 offset 728 size 456
+# Found symtab: 28 offset 20200 size 4752
+# SECTION 10                     .init addr 400768 offset 768 size 24
+
+SYM _init:
+XDIS 400768: BINARY    BASE   4883EC08                 sub rsp, 0x8
+XDIS 40076c: CALL      BASE   E82B010000               call 0x40089c
+XDIS 400771: CALL      BASE   E88A010000               call 0x400900
+XDIS 400776: CALL      BASE   E8851E0000               call 0x402600
+XDIS 40077b: BINARY    BASE   4883C408                 add rsp, 0x8
+XDIS 40077f: RET       BASE   C3                       ret 
+# end of text section.
+# Errors: 0
+# SECTION 11                      .plt addr 400780 offset 780 size 240
+XDIS 400780: PUSH      BASE   FF35823A2000             push qword ptr [rip+0x203a82]
+XDIS 400786: UNCOND_BR BASE   FF25843A2000             jmp qword ptr [rip+0x203a84]
+XDIS 40078c: WIDENOP   BASE   0F1F4000                 nop dword ptr [rax], eax
+XDIS 400790: UNCOND_BR BASE   FF25823A2000             jmp qword ptr [rip+0x203a82]
+XDIS 400796: PUSH      BASE   6800000000               push 0x0
+XDIS 40079b: UNCOND_BR BASE   E9E0FFFFFF               jmp 0x400780
+XDIS 4007a0: UNCOND_BR BASE   FF257A3A2000             jmp qword ptr [rip+0x203a7a]
+XDIS 4007a6: PUSH      BASE   6801000000               push 0x1
+XDIS 4007ab: UNCOND_BR BASE   E9D0FFFFFF               jmp 0x400780
+XDIS 4007b0: UNCOND_BR BASE   FF25723A2000             jmp qword ptr [rip+0x203a72]
+XDIS 4007b6: PUSH      BASE   6802000000               push 0x2
+XDIS 4007bb: UNCOND_BR BASE   E9C0FFFFFF               jmp 0x400780
+XDIS 4007c0: UNCOND_BR BASE   FF256A3A2000             jmp qword ptr [rip+0x203a6a]
+XDIS 4007c6: PUSH      BASE   6803000000               push 0x3
+XDIS 4007cb: UNCOND_BR BASE   E9B0FFFFFF               jmp 0x400780
+XDIS 4007d0: UNCOND_BR BASE   FF25623A2000             jmp qword ptr [rip+0x203a62]
+XDIS 4007d6: PUSH      BASE   6804000000               push 0x4
+XDIS 4007db: UNCOND_BR BASE   E9A0FFFFFF               jmp 0x400780
+XDIS 4007e0: UNCOND_BR BASE   FF255A3A2000             jmp qword ptr [rip+0x203a5a]
+XDIS 4007e6: PUSH      BASE   6805000000               push 0x5
+XDIS 4007eb: UNCOND_BR BASE   E990FFFFFF               jmp 0x400780
+XDIS 4007f0: UNCOND_BR BASE   FF25523A2000             jmp qword ptr [rip+0x203a52]
+XDIS 4007f6: PUSH      BASE   6806000000               push 0x6
+XDIS 4007fb: UNCOND_BR BASE   E980FFFFFF               jmp 0x400780
+XDIS 400800: UNCOND_BR BASE   FF254A3A2000             jmp qword ptr [rip+0x203a4a]
+XDIS 400806: PUSH      BASE   6807000000               push 0x7
+XDIS 40080b: UNCOND_BR BASE   E970FFFFFF               jmp 0x400780
+XDIS 400810: UNCOND_BR BASE   FF25423A2000             jmp qword ptr [rip+0x203a42]
+XDIS 400816: PUSH      BASE   6808000000               push 0x8
+XDIS 40081b: UNCOND_BR BASE   E960FFFFFF               jmp 0x400780
+XDIS 400820: UNCOND_BR BASE   FF253A3A2000             jmp qword ptr [rip+0x203a3a]
+XDIS 400826: PUSH      BASE   6809000000               push 0x9
+XDIS 40082b: UNCOND_BR BASE   E950FFFFFF               jmp 0x400780
+XDIS 400830: UNCOND_BR BASE   FF25323A2000             jmp qword ptr [rip+0x203a32]
+XDIS 400836: PUSH      BASE   680A000000               push 0xa
+XDIS 40083b: UNCOND_BR BASE   E940FFFFFF               jmp 0x400780
+XDIS 400840: UNCOND_BR BASE   FF252A3A2000             jmp qword ptr [rip+0x203a2a]
+XDIS 400846: PUSH      BASE   680B000000               push 0xb
+XDIS 40084b: UNCOND_BR BASE   E930FFFFFF               jmp 0x400780
+XDIS 400850: UNCOND_BR BASE   FF25223A2000             jmp qword ptr [rip+0x203a22]
+XDIS 400856: PUSH      BASE   680C000000               push 0xc
+XDIS 40085b: UNCOND_BR BASE   E920FFFFFF               jmp 0x400780
+XDIS 400860: UNCOND_BR BASE   FF251A3A2000             jmp qword ptr [rip+0x203a1a]
+XDIS 400866: PUSH      BASE   680D000000               push 0xd
+XDIS 40086b: UNCOND_BR BASE   E910FFFFFF               jmp 0x400780
+# end of text section.
+# Errors: 0
+# SECTION 12                     .text addr 400870 offset 870 size 7624
+
+SYM _start:
+XDIS 400870: LOGICAL   BASE   31ED                     xor ebp, ebp
+XDIS 400872: DATAXFER  BASE   4989D1                   mov r9, rdx
+XDIS 400875: POP       BASE   5E                       pop rsi
+XDIS 400876: DATAXFER  BASE   4889E2                   mov rdx, rsp
+XDIS 400879: LOGICAL   BASE   4883E4F0                 and rsp, 0xfffffffffffffff0
+XDIS 40087d: PUSH      BASE   50                       push rax
+XDIS 40087e: PUSH      BASE   54                       push rsp
+XDIS 40087f: DATAXFER  BASE   49C7C0F0254000           mov r8, 0x4025f0
+XDIS 400886: DATAXFER  BASE   48C7C160254000           mov rcx, 0x402560
+XDIS 40088d: DATAXFER  BASE   48C7C730094000           mov rdi, 0x400930
+XDIS 400894: CALL      BASE   E877FFFFFF               call 0x400810
+XDIS 400899: SYSTEM    BASE   F4                       hlt 
+XDIS 40089a: NOP       BASE   90                       nop 
+XDIS 40089b: NOP       BASE   90                       nop 
+
