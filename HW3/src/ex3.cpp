@@ -693,12 +693,9 @@ int find_candidate_rtns_for_translation(IMG img)
     for(int i=0; i<10; i++)
     {
     	getline(inFile,rtnName);
-	cout<<"routine: "<<rtnName<<endl;
     	RTN rtn = RTN_FindByName(img, rtnName.c_str());
-
 	if (rtn == RTN_Invalid()) {
 		cerr << "Warning: invalid routine " << rtnName << endl;
-		i--;
   		continue;
 	}
 
@@ -1020,8 +1017,14 @@ VOID rtnWrapper(RTN rtn, VOID *v)
 	rtn_list.push_back(rtnInfo);
 
 	RTN_Open(rtn);
-	INS ins = RTN_InsHead(rtn);
-	INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)doCount, IARG_PTR,&rtnInfo->rtnInvCount , IARG_END);
+	for (INS ins = RTN_InsHead(rtn); INS_Valid(ins); ins = INS_Next(ins))
+	{
+		if(INS_IsRet(ins))
+		{
+			INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)doCount, IARG_PTR, &rtnInfo->rtnInvCount , IARG_END);
+		}
+
+	}
 	RTN_Close(rtn);
 }
 
