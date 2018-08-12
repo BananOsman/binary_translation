@@ -39,6 +39,9 @@ using namespace std;
 #define cmp_inst_addr 0x40a070
 #define end_loop_inst_addr 0x40a076
 
+#define uncond_branch_addr 0x500000
+#define loop_inst_num 45
+
 
 /*======================================================================*/
 /* commandline switches                                                 */
@@ -331,6 +334,7 @@ int add_new_instr_entry(xed_decoded_inst_t *xedd, ADDRINT pc, unsigned int size)
 
     // debug print new encoded instr:
 	if (KnobVerbose) {
+		cerr << "    old instr: old target: "<< orig_targ_addr<<" disp: "<<disp<<endl;
 		cerr << "    new instr:";
 		dump_instr_from_mem((ADDRINT *)instr_map[num_of_instr_map_entries-1].encoded_ins, instr_map[num_of_instr_map_entries-1].new_ins_addr);
 	}
@@ -344,6 +348,9 @@ int add_new_instr_entry(xed_decoded_inst_t *xedd, ADDRINT pc, unsigned int size)
 /*************************************************/
 int chain_all_direct_br_and_call_target_entries()
 {
+	bool fix_forward_jl = true;
+	bool fix_backward_jl = true;
+	int count = 0, roll = 0;
 	for (int i=0; i < num_of_instr_map_entries; i++) {
 		//orig_targ_addr == 0 for non branch instructions
 		if (instr_map[i].orig_targ_addr == 0)
@@ -351,21 +358,57 @@ int chain_all_direct_br_and_call_target_entries()
 
 		if (instr_map[i].hasNewTargAddr)
 			continue;
-
+		if (instr_map[i].orig_ins_addr == uncond_branch_addr)
+		{
+		     instr_map[i].hasNewTargAddr = true;
+			 instr_map[i].new_targ_entry = i+loop_inst_num+1;
+		     continue;
+		}
+		if (instr_map[i].orig_ins_addr == mov_inst_addr)
+		{
+			roll++;
+		}
         for (int j = 0; j < num_of_instr_map_entries; j++) {
             if (j == i)
 			   continue;
 
             if (instr_map[j].orig_ins_addr == instr_map[i].orig_targ_addr) {
+            	if (instr_map[i].orig_ins_addr == end_loop_inst_addr && fix_forward_jl)
+            	{
+            		if(count < 4)
+            		{
+            			count ++;
+            			continue;
+            		} else {
+            			fix_forward_jl = false;
+            			count = 0;
+            		}
+            	} else if (instr_map[i].orig_ins_addr == end_loop_inst_addr && fix_backward_jl)
+            	{
+            		j -=5;
+            		fix_backward_jl = false;
+            		fix_forward_jl = true;
+            	} else if (roll != count + 1)
+            	{
+            		count++;
+            		continue;
+            	}
+
                 instr_map[i].hasNewTargAddr = true;
 	            instr_map[i].new_targ_entry = j;
+	            count = 0;
                 break;
-
-                if(instr_map[i].orig_targ_addr == end_loop_inst_addr)
-                {
-                	cerr<<"jump target: "<<hex<<instr_map[j].orig_ins_addr<<" number: "<<dec<<j<<endl;
-                }
 			}
+		}
+	}
+
+	if (KnobVerbose)
+	{
+		cerr<<"CHAINING:::::::::::::::::::::::::::::::::::"<<endl;
+		for (int i=0; i < num_of_instr_map_entries; i++)
+		{
+			cerr<<i<<" org addr: "<<instr_map[i].orig_ins_addr <<"  org target: "<<instr_map[i].orig_targ_addr<<endl;
+			cerr<<"chained to: "<<instr_map[i].new_targ_entry <<"   new addr: "<<instr_map[i].new_ins_addr<<endl;
 		}
 	}
 	return 0;
@@ -721,8 +764,6 @@ int encode_sub_inst()
 
 	unsigned int olen = 0;
 	int rc;
-	cerr<<"category: "<<xed_decoded_inst_get_category(&xedd)<<endl;
-	cerr<<"iclass: "<<xed_decoded_inst_get_iclass(&xedd)<<endl;
 	xed_encoder_instruction_t  enc_instr;
 	xed_inst2(&enc_instr, dstate, xed_decoded_inst_get_iclass(&xedd), 32, xed_reg(XED_REG_ESI), xed_mem_bd(XED_REG_RIP, xed_disp(-0x86c, 32), 32));
 
@@ -773,8 +814,7 @@ int encode_sub_inst()
 		return -1 ;
 	}
 
-	cerr<<"category: "<<xed_decoded_inst_get_category(&xedd)<<endl;
-	cerr<<"iclass: "<<xed_decoded_inst_get_iclass(&xedd)<<endl;
+
 	xed_inst2(&enc_instr, dstate, xed_decoded_inst_get_iclass(&xedd), 32, xed_reg(XED_REG_ESI), xed_imm0(-4, 32));
 
 	xed_encoder_request_zero_set_mode(&enc_req, &dstate);
@@ -831,8 +871,7 @@ int encode_cmp_inst()
 
 	unsigned int olen = 0;
 	int rc;
-	cerr<<"category: "<<xed_decoded_inst_get_category(&xedd)<<endl;
-	cerr<<"iclass: "<<xed_decoded_inst_get_iclass(&xedd)<<endl;
+
 	xed_encoder_instruction_t  enc_instr;
 	xed_inst2(&enc_instr, dstate, xed_decoded_inst_get_iclass(&xedd), 32,xed_reg(XED_REG_ESI), xed_reg(XED_REG_EAX));
 
@@ -885,28 +924,18 @@ int encode_con_jmp_inst()
 		cerr << "ERROR: xed decode failed for instr at: " << "0x" << hex
 				<< addr << endl;
 		translated_rtn[translated_rtn_num].instr_map_entry = -1;
-		break;
+		return -1;
 	}
-
-	xed_int32_t  disp = 0;
-	xed_uint_t   disp_byts = 4;
-	// Converts the decoder request to a valid encoder request:
-	xed_encoder_request_init_from_decode (&xedd);
-
-	new_disp = 0;
-	//Set the branch displacement:
-	xed_encoder_request_set_branch_displacement (&xedd, disp, disp_byts);
-
 
 	// Add instr into instr map:
 	int InsSize = xed_decoded_inst_get_length(&xedd);
-	rc = add_new_instr_entry(&xedd, addr, InsSize);
+	int rc = add_new_instr_entry(&xedd, addr, InsSize);
 	if (rc < 0) {
 		cerr << "ERROR: failed during instructon translation." << endl;
 		translated_rtn[translated_rtn_num].instr_map_entry = -1;
-		break;
+		return -1;
 	}
-
+	return 0;
 }
 
 int encode_uncon_jmp_inst()
@@ -918,7 +947,7 @@ int encode_uncon_jmp_inst()
 	xed_error_enum_t xed_code;
 
 	xed_encoder_instruction_t  enc_instr;
-	xed_inst1(&enc_instr, dstate, XED_ICLASS_JMP, 64, xed_mem_bd(XED_REG_RIP, xed_disp(ilen, 32), 64));
+	xed_inst1(&enc_instr, dstate, XED_ICLASS_JMP, 64,xed_relbr(ilen,32) );
 
 	xed_encoder_request_t enc_req;
 
@@ -945,7 +974,7 @@ int encode_uncon_jmp_inst()
 	}
 
 	int InsSize = xed_decoded_inst_get_length(&xedd);
-	rc = add_new_instr_entry(&xedd, 0, InsSize);
+	rc = add_new_instr_entry(&xedd, uncond_branch_addr, InsSize);
 	if (rc < 0) {
 		cerr << "ERROR: failed during instructon translation." << endl;
 		translated_rtn[translated_rtn_num].instr_map_entry = -1;
@@ -985,7 +1014,7 @@ int add_fallBackSort(IMG img)
 	translated_rtn[translated_rtn_num].isSafeForReplacedProbe = true;
 
 	RTN_Open(rtn);
-	for (INS ins = RTN_InsHead(rtn); INS_Valid(ins); ins = INS_Next(ins)) //while ( INS_Valid(ins) )
+	for (INS ins = RTN_InsHead(rtn); INS_Valid(ins); ins = INS_Next(ins))
 	{
 
 		ADDRINT addr = INS_Address(ins);
@@ -995,7 +1024,6 @@ int add_fallBackSort(IMG img)
 			if (add_mov == true)
 			{
 				//cerr<<"added mov"<<endl;
-				//INS cmp_inst =
 				addr = (ADDRINT)mov_inst_addr;
 				//cerr<<"addr: "<<addr<<endl;
 				ins = loop_start_ins;
@@ -1062,9 +1090,7 @@ int add_fallBackSort(IMG img)
 			Unrolling++;
 			add_reminant = true;
 			continue;
-		} //else {
-		  //ins = INS_Next(ins);
-		  //}
+		}
 
 		// Add instr into instr map:
 		int InsSize = xed_decoded_inst_get_length(&xedd);
@@ -1504,7 +1530,6 @@ int main(int argc, char * argv[])
     	{
     		// Register ImageLoad
     		IMG_AddInstrumentFunction(ImageLoad, 0);
-
     		// Start the program, never returns
     		PIN_StartProgramProbed();
     	}
